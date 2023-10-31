@@ -9,9 +9,9 @@
 ```csharp
 using HtmlToDocument;
 
-private void Convert(string htmlPath, string outPath, TypeDocument typeDocument, PrintOptions printOptions)
+private void Convert(string htmlPath, string outPath, TypeDocument typeDocument)
 {
-    _documentConvert = _documentConvert ?? new DocumentConvert();
-    _documentConvert.Convert(htmlPath, outPath, typeDocument, printOptions);
+    _documentConvert = new DocumentConvert();
+    _documentConvert.Convert(htmlPath, outPath, typeDocument);
 }
 ```
