@@ -21,8 +21,10 @@ internal class DocxConvert : IConvert
     /// <exception cref="FileNotFoundException">Выбрасывается, если сконвертированный файл DOCX не может быть найден на диске.</exception>
     public void Convert(string htmlPath, string outPath, PrintOptions printOptions)
     {
-        using var dConvert = new Utils.DocumentFormat(htmlPath, outPath);
-        dConvert.Convert();
+        using (var dConvert = new Utils.DocumentFormat(htmlPath, outPath))
+        {
+            dConvert.Convert();
+        }
 
         if (!File.Exists(outPath))
         {
