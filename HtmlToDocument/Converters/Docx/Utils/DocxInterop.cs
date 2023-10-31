@@ -8,25 +8,37 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 using Font = HtmlToDocument.Models.Font;
+using Range = Microsoft.Office.Interop.Word.Range;
 
 namespace HtmlToDocument.Converters.Docx.Utils;
+
+/// <summary>
+/// Класс, отвечающий за дополнительную обработку и настройку документов DOCX с помощью Microsoft.Office.Interop.Word.
+/// </summary>
 internal class DocxInterop : IDisposable
 {
     private readonly PrintOptions _printOptions;
-
     private readonly Document _document;
     private readonly Application _application;
 
+    /// <summary>
+    /// Инициализирует новый экземпляр класса DocxInterop с указанным путем выходного DOCX-файла и параметрами печати.
+    /// </summary>
+    /// <param name="outPath">Путь к выходному файлу DOCX, который нужно обработать.</param>
+    /// <param name="printOptions">Параметры печати для применения к документу.</param>
     public DocxInterop(string outPath, PrintOptions printOptions)
     {
         _printOptions = printOptions;
-
         _application = new Application();
         _document = _application.Documents.Open(FileName: outPath, ReadOnly: false);
     }
 
+    /// <summary>
+    /// Форматирует документ DOCX, используя заданные параметры печати.
+    /// </summary>
     public void Format()
     {
         ChangeFont(_printOptions.Font);
@@ -38,50 +50,71 @@ internal class DocxInterop : IDisposable
         }
     }
 
+    /// <summary>
+    /// Изменяет шрифт документа на заданный.
+    /// </summary>
+    /// <param name="font">Шрифт, который нужно использовать в документе.</param>
     private void ChangeFont(Font font)
     {
-        _document.Range().Font.Size = font.Size;
-        _document.Range().Font.Name = font.Name;
+        var range = _document.Range();
+        range.Font.Size = font.Size;
+        range.Font.Name = font.Name;
     }
 
+    /// <summary>
+    /// Изменяет ориентацию страниц документа на заданную.
+    /// </summary>
+    /// <param name="orientation">Ориентация страниц, которую нужно использовать в документе.</param>
     private void ChangeOrientation(PageOrientation orientation)
     {
         _document.Sections.PageSetup.Orientation = orientation.ToWdOrientation();
     }
 
+    /// <summary>
+    /// Добавляет в документ заданные в параметрах печати вложения вместо искомых ключей.
+    /// </summary>
+    /// <param name="attachments">Список вложений, которые нужно добавить в документ.</param>
     private void AddAttachments(IEnumerable<Attachment> attachments)
     {
-        var rangeObject = _document.Range();
-
-        foreach (Attachment item in attachments)
+        foreach (var item in attachments)
         {
             var nameFile = Path.GetFileName(item.Key);
             var parameters = GetFindParameters($"[{nameFile}]", Missing.Value);
+            var range = _document.Range();
 
-            var findObject = rangeObject.Find;
-
-            var isFound = (bool)rangeObject.Find
+            var isFound = (bool)range.Find
                 .GetType()
-                .InvokeMember("Execute", BindingFlags.InvokeMethod, null, rangeObject.Find, parameters);
+                .InvokeMember("Execute", BindingFlags.InvokeMethod, null, range.Find, parameters);
 
             if (isFound)
             {
-                AddAttachments(rangeObject, item.Pathes);
+                AddAttachments(range, item.Pathes);
             }
         }
     }
 
-    private void AddAttachments(Microsoft.Office.Interop.Word.Range rangeObject, IEnumerable<string> attachments)
+    /// <summary>
+    /// Добавляет в документ заданные вложения вместо указанного диапазона.
+    /// </summary>
+    /// <param name="rangeObject">Диапазон документа, который нужно заменить вложением.</param>
+    /// <param name="attachments">Список вложений, которые нужно добавить в документ.</param>
+    private void AddAttachments(Range rangeObject, IEnumerable<string> attachments)
     {
         rangeObject.Select();
-        _ = rangeObject.Delete();
+        rangeObject.Delete();
 
-        foreach (string item in attachments)
+        foreach (var item in attachments)
         {
-            _ = _application.Selection.InlineShapes.AddObject(item, rangeObject);
+            _application.Selection.InlineShapes.AddObject(item, rangeObject);
         }
     }
 
+    /// <summary>
+    /// Возвращает параметры для поиска искомой строки.
+    /// </summary>
+    /// <param name="flagFileName">Строка для поиска.</param>
+    /// <param name="missingObject">Объект, который указывает на неопределенное значение.</param>
+    /// <returns>Массив параметров для поиска искомой строки.</returns>
     private object[] GetFindParameters(string flagFileName, object missingObject)
     {
         const int parameterCount = 15;
@@ -93,6 +126,18 @@ internal class DocxInterop : IDisposable
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+        _document?.Close();
+        ReleaseComObject(_document);
+
+        _application?.Quit();
+        ReleaseComObject(_application);
+
+        static void ReleaseComObject(object? obj)
+        {
+            if (obj is not null)
+            {
+                Marshal.FinalReleaseComObject(obj);
+            }
+        }
     }
 }
