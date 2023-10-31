@@ -124,6 +124,9 @@ internal class DocxInterop : IDisposable
             .ToArray();
     }
 
+    /// <summary>
+    /// Освобождает ресурсы, используемые объектами <see cref="Document"/> и <see cref="Application"/> .
+    /// </summary>
     public void Dispose()
     {
         _document?.Close();
