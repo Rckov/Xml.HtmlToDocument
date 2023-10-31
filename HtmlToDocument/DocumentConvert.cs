@@ -1,34 +1,34 @@
 ﻿using HtmlToDocument.Enums;
 using HtmlToDocument.Interfaces;
+using HtmlToDocument.Models;
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HtmlToDocument;
 
 /// <summary>
-/// Класс для конвертации HTML-документа в различные форматы документа
+/// Класс для конвертации HTML-документов в различные форматы, такие как PDF или DOCX.
 /// </summary>
 public class DocumentConvert
 {
     /// <summary>
-    /// Преобразование HTML-документа в заданный выходной формат в соответствии с типом документа, переданным в параметре <paramref name="typeDocument"/>
+    /// Метод конвертации HTML-документа.
     /// </summary>
-    /// <param name="htmlPath">Путь к HTML-документу.</param>
-    /// <param name="outPath">Путь к выходному документу.</param>
-    /// <param name="typeDocument">Тип документа, в который нужно конвертировать HTML-документ.</param>
-    public void Convert(string htmlPath, string outPath, TypeDocument typeDocument)
+    /// <param name="htmlPath">Путь к HTML-файлу.</param>
+    /// <param name="outPath">Путь для сохранения конвертированного файла.</param>
+    /// <param name="typeDocument">Формат, в который нужно сконвертировать документ (PDF, DOCX).</param>
+    /// <param name="printOptions">Опции для печати документа.</param>
+    public void Convert(string htmlPath, string outPath, TypeDocument typeDocument, PrintOptions? printOptions = null)
     {
         var convert = GetConverter(typeDocument);
-        convert?.Convert(htmlPath, outPath);
+        convert?.Convert(htmlPath, outPath, printOptions ?? new PrintOptions());
     }
 
     /// <summary>
-    /// Получение объекта-конвертера в зависимости от типа документа, переданного в параметре <paramref name="typeDocument"/>
+    /// Возвращает конвертер для заданного типа документа.
     /// </summary>
-    /// <param name="typeDocument">Тип документа, в который нужно конвертировать HTML-документ.</param>
-    /// <returns>Объект-конвертер <see cref="IConvert"/> в соответствии с заданным типом документа.</returns>
+    /// <param name="typeDocument">Тип документа (PDF, DOCX).</param>
+    /// <returns>Интерфейс конвертера IConvert.</returns>
     private IConvert GetConverter(TypeDocument typeDocument)
     {
         return typeDocument switch

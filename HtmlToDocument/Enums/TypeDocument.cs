@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HtmlToDocument.Enums
+﻿namespace HtmlToDocument.Enums
 {
     public enum TypeDocument
     {
