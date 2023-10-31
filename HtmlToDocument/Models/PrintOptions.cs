@@ -1,4 +1,7 @@
-﻿namespace HtmlToDocument.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace HtmlToDocument.Models;
 
 /// <summary>
 /// Класс, представляющий настройки печати документов.
@@ -18,5 +21,5 @@ public class PrintOptions
     /// <summary>
     /// Устанавливает или получает вложение для печати документов.
     /// </summary>
-    public Attachment? Attachment { get; set; }
+    public IEnumerable<Attachment> Attachments { get; set; } = Enumerable.Empty<Attachment>();
 }

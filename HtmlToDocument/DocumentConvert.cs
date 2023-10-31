@@ -1,4 +1,5 @@
-﻿using HtmlToDocument.Enums;
+﻿using HtmlToDocument.Converters.Docx;
+using HtmlToDocument.Enums;
 using HtmlToDocument.Interfaces;
 using HtmlToDocument.Models;
 
@@ -34,7 +35,7 @@ public class DocumentConvert
         return typeDocument switch
         {
             TypeDocument.Pdf => null!,
-            TypeDocument.Docx => null!,
+            TypeDocument.Docx => new DocxConvert(),
             _ => throw new InvalidOperationException($"Undefined convert type {typeDocument}")
         };
     }
